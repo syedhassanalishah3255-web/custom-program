@@ -16,6 +16,8 @@ To build and run this game, you need:
 - Raylib library installed
 - Linux/Unix environment (for current build system)
 
+**Quick Start**: If you're new to Raylib, see [QUICKSTART.md](QUICKSTART.md) for detailed installation instructions.
+
 ### Installing Raylib
 
 On Ubuntu/Debian:
