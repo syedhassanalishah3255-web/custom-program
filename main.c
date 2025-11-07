@@ -1,10 +1,9 @@
 #include "raylib.h"
 #include <stdio.h>
 #include <stdlib.h>
-
-// Forward declarations for external game functions
-extern int RunMenu(void);
-extern int RunGameplay(void);
+#include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 typedef enum {
     SCREEN_MENU,
@@ -12,14 +11,71 @@ typedef enum {
     SCREEN_EXIT
 } GameScreen;
 
+// Safe function to execute a program and wait for it
+int execute_program(const char *program_path) {
+    pid_t pid = fork();
+    
+    if (pid < 0) {
+        fprintf(stderr, "Error: Failed to fork process\n");
+        return -1;
+    }
+    
+    if (pid == 0) {
+        // Child process
+        char *args[] = {(char *)program_path, NULL};
+        execv(program_path, args);
+        // If execv returns, there was an error
+        fprintf(stderr, "Error: Failed to execute %s\n", program_path);
+        exit(1);
+    } else {
+        // Parent process
+        int status;
+        waitpid(pid, &status, 0);
+        return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+    }
+}
+
+// Safe function to get user input
+int get_yes_no_input(void) {
+    char buffer[16];
+    
+    if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+        return 0; // Default to no on error
+    }
+    
+    // Trim newline
+    buffer[strcspn(buffer, "\n")] = 0;
+    
+    if (strlen(buffer) == 0) {
+        return 0;
+    }
+    
+    // Check first character
+    char first = buffer[0];
+    return (first == 'y' || first == 'Y');
+}
+
 int main(void)
 {
-    // Simple main launcher that can switch between menu and gameplay
     GameScreen currentScreen = SCREEN_MENU;
     
     printf("===========================================\n");
     printf("  Sunset Rangers - Western Action Game\n");
     printf("===========================================\n\n");
+    
+    // Check if required programs exist
+    if (access("./menu", X_OK) != 0) {
+        fprintf(stderr, "Error: './menu' not found or not executable.\n");
+        fprintf(stderr, "Please run 'make all' to build the game first.\n");
+        return 1;
+    }
+    
+    if (access("./gameplay", X_OK) != 0) {
+        fprintf(stderr, "Error: './gameplay' not found or not executable.\n");
+        fprintf(stderr, "Please run 'make all' to build the game first.\n");
+        return 1;
+    }
+    
     printf("Starting game...\n");
     
     while (currentScreen != SCREEN_EXIT)
@@ -29,23 +85,30 @@ int main(void)
             case SCREEN_MENU:
             {
                 printf("Loading menu...\n");
-                // For now, we'll just run the menu standalone
-                // In the future, menu.c should be refactored to return a result
-                system("./menu");
-                // For this simple version, after menu closes, go to gameplay
+                int result = execute_program("./menu");
+                
+                if (result != 0) {
+                    fprintf(stderr, "Menu exited with code %d\n", result);
+                }
+                
+                // For this simple version, after menu closes, ask user
                 printf("\nDo you want to play the game? (y/n): ");
-                char choice;
-                scanf(" %c", &choice);
-                if (choice == 'y' || choice == 'Y')
+                if (get_yes_no_input()) {
                     currentScreen = SCREEN_GAMEPLAY;
-                else
+                } else {
                     currentScreen = SCREEN_EXIT;
+                }
                 break;
             }
             case SCREEN_GAMEPLAY:
             {
                 printf("Loading gameplay...\n");
-                system("./gameplay");
+                int result = execute_program("./gameplay");
+                
+                if (result != 0) {
+                    fprintf(stderr, "Gameplay exited with code %d\n", result);
+                }
+                
                 // After gameplay, return to menu
                 currentScreen = SCREEN_MENU;
                 break;
