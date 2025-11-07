@@ -38,11 +38,11 @@ int main(void)
 
     // === Load textures ===
     Texture2D bg = LoadTexture("assets/idea.png"); // full sprite sheet
-    Texture2D idle = LoadTexture("Idle.png");
-    Texture2D run = LoadTexture("Run.png");
-    Texture2D jump = LoadTexture("Jump.png");
-    Texture2D crouch = LoadTexture("Idle_2.png"); // can be crouch
-    Texture2D shoot = LoadTexture("Shot.png");
+    Texture2D idle = LoadTexture("character/Idle.png");
+    Texture2D run = LoadTexture("character/Run.png");
+    Texture2D jump = LoadTexture("character/Jump.png");
+    Texture2D crouch = LoadTexture("character/Idle_2.png"); // can be crouch
+    Texture2D shoot = LoadTexture("character/Shot.png");
 
     // === Auto-detect frames ===
     int idleFrames = GetFrameCount(idle);
