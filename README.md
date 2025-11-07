@@ -43,6 +43,18 @@ make gameplay
 make clean
 ```
 
+## Testing
+
+Verify the project structure and run basic tests:
+
+```bash
+# Run verification script
+./verify.sh
+
+# Run test suite (doesn't require Raylib)
+./test.sh
+```
+
 ## Running the Game
 
 ```bash
